@@ -10,9 +10,12 @@ Este proyecto permite monitorear el estado de distintas URLs, enviar notificacio
 - pip (administrador de paquetes de Python)
 
 Librerías necesarias (se instalan desde `requirements.txt`):
-- requests
-- python-telegram-bot
-- flask
+- Flask==2.3.3
+- requests==2.31.0
+- plotly==5.15.0
+- pandas==2.0.3
+- python-telegram-bot==20.7
+- gunicorn==21.2.0  # Para servir la aplicación Flask en producción
 
 ---
 
@@ -25,7 +28,7 @@ git clone https://github.com/mr1306/Bot_urls.git
 cd Bot_urls
 
 python3 -m venv ent_virtual    # crea el entorno virtual 
-source venv/bin/activate       # ingresa al entorno
+source ent_virtual/bin/activate       # ingresa al entorno
 pip install -r requirements.txt    # instala paquete de librerías
 
 ---
