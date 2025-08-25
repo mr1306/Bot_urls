@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Panel de Monitoreo - Resumen</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 15px;
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+        .container {
+            max-width: 1200px;
+            padding: 0 15px;
+        }
+        .card {
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+        }
+        .card-body {
+            padding: 10px;
+        }
+        .chart-container {
+            width: 100%;
+            overflow-x: auto;
+            margin: 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+        }
+        .js-plotly-plot {
+            width: 100% !important;
+            margin: 0 auto;
+            display: block;
+        }
+        .status-badge {
+            padding: 0.25em 0.5em;
+            border-radius: 0.2rem;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        .status-up {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-down {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .table th, .table td {
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+        .table-responsive {
+            margin: 0;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        h5 {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .lead {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .periodo-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .periodo-btn {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+        }
+        .periodo-btn.active {
+            background-color: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+        }
+        .fecha-filtro {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        .fecha-input {
+            flex: 1;
+            min-width: 150px;
+        }
+        .filtro-row {
+            margin-bottom: 10px;
+        }
+        .form-label-sm {
+            font-size: 0.8rem;
+            margin-bottom: 0.2rem;
+            font-weight: 500;
+        }
+    </style>
+
+    <style>
+        .chart-container {
+            width: 100%;
+            overflow-x: auto;
+            margin: 0;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        /* Permitir scroll horizontal si es necesario */
+        .js-plotly-plot {
+            width: 1200px !important;  /* Ancho fijo para el gráfico */
+            margin: 0 auto;
+            display: block;
+        }
+        
+        /* Contenedor principal con scroll horizontal */
+        .chart-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1>📊 Panel de Monitoreo de URLs</h1>
+                    <p class="lead">Estado de servicios web - Vista resumida</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="/" class="btn btn-light btn-sm">Ver Detalle</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros de Fechas Personalizadas -->
+        <div class="card">
+            <div class="card-header py-2">
+                <h5 class="mb-0">Filtros de Fechas Personalizadas</h5>
+            </div>
+            <div class="card-body p-2">
+                <form method="GET" id="filtroForm">
+                    <input type="hidden" name="servidor" value="{{ request.args.get('servidor', '') }}">
+                    <input type="hidden" name="periodo_grafico" value="{{ periodo_actual }}">
+                    
+                    <div class="row filtro-row">
+                        <div class="col-md-3">
+                            <label class="form-label-sm">Fecha Inicio:</label>
+                            <input type="date" class="form-control form-control-sm" 
+                                   name="fecha_inicio" value="{{ fecha_inicio_actual }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label-sm">Fecha Fin:</label>
+                            <input type="date" class="form-control form-control-sm" 
+                                   name="fecha_fin" value="{{ fecha_fin_actual }}">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-sm me-2">Aplicar Fechas</button>
+                            <a href="/resumen?servidor={{ request.args.get('servidor', '') }}&periodo_grafico={{ periodo_actual }}" 
+                               class="btn btn-secondary btn-sm">Limpiar Fechas</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+<!-- Filtros de Período Predefinido -->
+<div class="card">
+    <div class="card-header py-2">
+        <h5 class="mb-0">Períodos Predefinidos</h5>
+    </div>
+    <div class="card-body p-2">
+        <form method="GET" id="periodoForm">
+            <input type="hidden" name="servidor" value="{{ request.args.get('servidor', '') }}">
+            <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio_actual }}">
+            <input type="hidden" name="fecha_fin" value="{{ fecha_fin_actual }}">
+            
+            <div class="periodo-buttons">
+                <button type="submit" name="periodo_grafico" value="7d" 
+                        class="btn periodo-btn {% if periodo_actual == '7d' %}active{% else %}btn-outline-primary{% endif %}">
+                    7 días
+                </button>
+                <!-- Quitamos 1 mes y 3 meses -->
+                <button type="submit" name="periodo_grafico" value="6m" 
+                        class="btn periodo-btn {% if periodo_actual == '6m' %}active{% else %}btn-outline-primary{% endif %}">
+                    6 meses
+                </button>
+                <button type="submit" name="periodo_grafico" value="1y" 
+                        class="btn periodo-btn {% if periodo_actual == '1y' %}active{% else %}btn-outline-primary{% endif %}">
+                    1 año
+                </button>
+                <!-- Quitamos 2 años -->
+            </div>
+        </form>
+    </div>
+</div>
+
+        <!-- Gráfico Principal -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    {% if fecha_inicio_actual and fecha_fin_actual %}
+                        Estado de URLs - {{ fecha_inicio_actual }} a {{ fecha_fin_actual }}
+                    {% elif periodo_actual == '7d' %}Estado de URLs - Últimos 7 días
+                    {% elif periodo_actual == '6m' %}Estado de URLs - Últimos 6 meses
+                    {% elif periodo_actual == '1y' %}Estado de URLs - Último año
+                    {% else %}Estado de URLs - Últimos 7 días{% endif %}
+                </h5>
+            </div>
+            <div class="card-body p-2">
+                <div class="chart-scroll-container">
+                    <div class="chart-container">
+                        {{ plot_html | safe }}
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Pase el mouse sobre las líneas para ver detalles de fecha y hora específicos.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Resumen -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <h5 class="mb-0">Resumen Diario</h5>
+                <small class="text-muted">
+                    {% if fecha_inicio_actual and fecha_fin_actual %}
+                        {{ fecha_inicio_actual }} a {{ fecha_fin_actual }}
+                    {% else %}
+                        Últimos 7 días
+                    {% endif %}
+                </small>
+            </div>
+            <div class="card-body p-2">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Servidor</th>
+                                <th>Fecha</th>
+                                <th>Estado Final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if data %}
+                                {% for row in data %}
+                                <tr>
+                                    <td>{{ row[0] }}</td>
+                                    <td>{{ row[1] }}</td>
+                                    <td>
+                                        <span class="status-badge {% if row[2] == 'UP' %}status-up{% else %}status-down{% endif %}">
+                                            {{ row[2] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-3">
+                                        No hay datos disponibles
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script para hacer los gráficos de Plotly responsivos
+        document.addEventListener('DOMContentLoaded', function() {
+            const plotlyElements = document.querySelectorAll('.js-plotly-plot');
+            plotlyElements.forEach(function(element) {
+                Plotly.Plots.resize(element);
+            });
+            
+            window.addEventListener('resize', function() {
+                plotlyElements.forEach(function(element) {
+                    Plotly.Plots.resize(element);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

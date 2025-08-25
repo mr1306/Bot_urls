@@ -1,0 +1,13 @@
+https://www.ffyb.uba.ar
+https://campus.ffyb.uba.ar   
+https://guarani.ffyb.uba.ar
+https://kolla-test.ffyb.uba.ar/
+https://enfoco.ffyb.uba.ar
+https://diaguita.ffyb.uba.ar
+http://157.92.144.4/siu/pilaga/
+http://157.92.150.216/pilaga/
+http://mx.listas.ffyb.uba.ar/
+http://app.ffyb.uba.ar/ffybservicios/hhome.aspx
+https://apps.ffyb.uba.ar/
+https://portaldevideos.ffyb.uba.ar/
+https://diaguita.ffyb.uba.ar/api/webhook
